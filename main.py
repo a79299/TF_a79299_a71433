@@ -61,7 +61,6 @@ def contar_dedos(results): # Função para contar o número de dedos levantados 
             return dedos_levantados
     return 0
 
-
 def detectar_cabeca(results): # Função para detectar a posição do nariz com base nos pontos faciais usando o MediaPipe FaceMesh.
     if results.multi_face_landmarks:
         for face_landmarks in results.multi_face_landmarks: # Pegar a coordenada Y do nariz (índice 1 é o ponto da ponta do nariz)
