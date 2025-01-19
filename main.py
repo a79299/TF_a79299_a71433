@@ -25,3 +25,47 @@ hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7
 # Configurar MediaPipe para detecção de cara
 mp_face_mesh = mp.solutions.face_mesh
 face_mesh = mp_face_mesh.FaceMesh(min_detection_confidence=0.7, min_tracking_confidence=0.7)
+
+def contar_dedos(results): # Função para contar o número de dedos levantados com base nos landmarks detectados por MediaPipe.
+    if results.multi_hand_landmarks:
+        for hand_landmarks in results.multi_hand_landmarks:
+            dedos_levantados = 0
+
+            # Coordenada Y do punho para referência
+            punho_y = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].y
+
+            # Verificar se o polegar está levantado
+            thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
+            thumb_ip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_IP]
+
+            # Determinar se o polegar está levantado (com base na posição X do polegar em relação ao punho)
+            if thumb_tip.x < thumb_ip.x if hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].x > 0.5 else thumb_tip.x > thumb_ip.x:
+                dedos_levantados += 1
+            
+            # Verificar os outros dedos (indicador, médio, anelar e mínimo) estão levantados
+            dedos = [
+                mp_hands.HandLandmark.INDEX_FINGER_TIP,
+                mp_hands.HandLandmark.MIDDLE_FINGER_TIP,
+                mp_hands.HandLandmark.RING_FINGER_TIP,
+                mp_hands.HandLandmark.PINKY_TIP,
+            ]
+            articulacoes = [
+                mp_hands.HandLandmark.INDEX_FINGER_MCP,
+                mp_hands.HandLandmark.MIDDLE_FINGER_MCP,
+                mp_hands.HandLandmark.RING_FINGER_MCP,
+                mp_hands.HandLandmark.PINKY_MCP,
+            ]
+            for i in range(len(dedos)):
+                if hand_landmarks.landmark[dedos[i]].y < hand_landmarks.landmark[articulacoes[i]].y:
+                    dedos_levantados += 1
+            return dedos_levantados
+    return 0
+
+
+def detectar_cabeca(results): # Função para detectar a posição do nariz com base nos pontos faciais usando o MediaPipe FaceMesh.
+    if results.multi_face_landmarks:
+        for face_landmarks in results.multi_face_landmarks: # Pegar a coordenada Y do nariz (índice 1 é o ponto da ponta do nariz)
+            nose_y = face_landmarks.landmark[1].y
+            nose_x = face_landmarks.landmark[1].x
+            return nose_x, nose_y
+    return None,None
