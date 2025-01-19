@@ -69,3 +69,73 @@ def detectar_cabeca(results): # Função para detectar a posição do nariz com 
             nose_x = face_landmarks.landmark[1].x
             return nose_x, nose_y
     return None,None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def start_server(): #Inicializa um servidor para gerir conexões de clientes e dados compartilhados via JSON
+    global json_data
+    host = "127.0.0.1"
+    port = 65432
+
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind((host, port))
+    server_socket.listen(5)
+    print(f"Servidor ouvindo em {host}:{port}...")
+
+    def handle_client(conn, addr): #Gere a comunicação com um cliente conectado
+        print(f"Conexão estabelecida com {addr}")
+        while True:
+            try:
+                data = conn.recv(1024)
+                if not data:
+                    print(f"Conexão encerrada por {addr}")
+                    break
+                message = json.loads(data.decode("utf-8"))
+                if message["action"] == "get":
+                    conn.sendall(json.dumps(json_data).encode("utf-8"))
+            except Exception as e:
+                print(f"Erro com o cliente {addr}: {e}")
+                break
+        try:
+            conn.close()
+        except OSError:
+            print(f"Erro ao tentar fechar a conexão com {addr}")
+
+    def accept_connections(): #Aceita conexões de clientes de forma contínua
+        while True:
+            try:
+                conn, addr = server_socket.accept()
+                threading.Thread(
+                    target=handle_client, args=(conn, addr), daemon=True
+                ).start()
+            except OSError:
+                print("Erro ao aceitar novas conexões")
+                break
+    threading.Thread(target=accept_connections, daemon=True).start()
+    main()
+    print("Servidor desligado!")
+
+if __name__ == "__main__":
+    start_server()
